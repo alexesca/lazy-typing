@@ -62,6 +62,19 @@ function renderTargetLines(target, typed, cursorIndex, width, maxLines) {
 
 export function renderFrame(state) {
   const width = Math.max(1, (state.terminalColumns || 80) - 2);
+  if (state.finished) {
+    const lines = [];
+    lines.push(color('36', truncateText('Typing Trainer Results', width)));
+    lines.push('');
+    lines.push(truncateText(`Mode: ${state.mode} | Source: ${state.sourceName}`, width));
+    lines.push(truncateText(`Net WPM: ${state.netWpm.toFixed(1)} | Raw WPM: ${state.grossWpm.toFixed(1)}`, width));
+    lines.push(truncateText(`Accuracy: ${state.accuracy.toFixed(1)}% | Raw Errors: ${state.errors} | Final Errors: ${state.finalErrors}`, width));
+    lines.push(truncateText(`Progress: ${state.progress} | ${state.timerLabel}`, width));
+    lines.push('');
+    lines.push(color('35', truncateText('Press Enter/Tab to restart, Ctrl+N next text, or Ctrl+C to quit.', width)));
+    return `\x1b[H${lines.join('\n')}\x1b[J`;
+  }
+
   const extraFooterLines = (state.helpVisible ? 2 : 0)
     + (state.paused ? 2 : 0)
     + (state.finished ? 2 : 0);
@@ -83,12 +96,6 @@ export function renderFrame(state) {
   if (state.paused) {
     lines.push('');
     lines.push(color('35', truncateText('Paused: (r)esume | (t) restart | (m) cycle mode | (q) quit', width)));
-  }
-
-  if (state.finished) {
-    lines.push('');
-    lines.push(color('35', truncateText(`Finished: net ${state.netWpm.toFixed(1)} | acc ${state.accuracy.toFixed(1)}% | errors ${state.errors}`, width)));
-    lines.push(color('35', truncateText('Press Enter/Tab to restart, Ctrl+N next text, or Ctrl+C to quit.', width)));
   }
 
   return `\x1b[H${lines.join('\n')}\x1b[J`;

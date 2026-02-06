@@ -47,6 +47,7 @@ function buildRuntimeSnapshot(state, timerLabel) {
     grossWpm: live.grossWpm,
     accuracy: live.accuracy,
     errors: state.rawErrors,
+    finalErrors: state.finalErrors,
     progress: progressLabel(state.cursor, state.targetText.length),
     paused: state.paused,
     helpVisible: state.helpVisible,
@@ -272,7 +273,10 @@ export async function run(args) {
   };
 
   const tick = async () => {
-    if (state.paused || state.finished) {
+    if (state.finished) {
+      return;
+    }
+    if (state.paused) {
       paint();
       return;
     }
