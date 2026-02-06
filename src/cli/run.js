@@ -27,9 +27,8 @@ function countCorrectChars(typed, target) {
 }
 
 function buildRuntimeSnapshot(state, timerLabel) {
-  const elapsedMs = Date.now() - state.startedAt;
-  const live = computeStats({
-    elapsedMs,
+  const live = state.finalStats || computeStats({
+    elapsedMs: Date.now() - state.startedAt,
     totalKeystrokes: state.totalKeystrokes,
     correctChars: countCorrectChars(state.typed, state.targetText),
     correctKeystrokes: state.correctKeystrokes,
@@ -51,7 +50,9 @@ function buildRuntimeSnapshot(state, timerLabel) {
     progress: progressLabel(state.cursor, state.targetText.length),
     paused: state.paused,
     helpVisible: state.helpVisible,
-    finished: state.finished
+    finished: state.finished,
+    terminalColumns: process.stdout.columns || 80,
+    terminalRows: process.stdout.rows || 24
   };
 }
 
@@ -83,10 +84,15 @@ export async function run(args) {
   let rollingTicker;
 
   const startNewSession = async () => {
+    const cols = process.stdout.columns || 80;
+    const rows = process.stdout.rows || 24;
+    const targetChars = Math.max(420, Math.min(1800, Math.floor((cols - 2) * Math.max(rows - 8, 6))));
     const pulled = await source.getText({
       mode: currentMode,
       setId: args.set,
       strict: Boolean(args.strict),
+      targetChars,
+      sentenceCount: 5,
       rng
     });
 
@@ -104,6 +110,8 @@ export async function run(args) {
     state.helpVisible = false;
     state.finished = false;
     state.rollingWpm = [];
+    state.finishedAt = undefined;
+    state.finalStats = undefined;
   };
 
   const state = {
@@ -120,11 +128,14 @@ export async function run(args) {
     paused: false,
     helpVisible: false,
     finished: false,
-    rollingWpm: []
+    rollingWpm: [],
+    finishedAt: undefined,
+    finalStats: undefined
   };
 
   const paint = () => {
-    const elapsed = Math.floor((Date.now() - state.startedAt) / 1000);
+    const now = state.finishedAt || Date.now();
+    const elapsed = Math.floor((now - state.startedAt) / 1000);
     const timerLabel = sessionType === 'timed'
       ? `Time ${Math.max(0, timedSeconds - elapsed)}s`
       : `Elapsed ${elapsed}s`;
@@ -134,15 +145,17 @@ export async function run(args) {
   const finishSession = async () => {
     if (state.finished) return;
     state.finished = true;
+    state.finishedAt = Date.now();
     state.finalErrors = state.typed.reduce((acc, char, i) => (char === state.targetText[i] ? acc : acc + 1), 0);
     const final = computeStats({
-      elapsedMs: Date.now() - state.startedAt,
+      elapsedMs: state.finishedAt - state.startedAt,
       totalKeystrokes: state.totalKeystrokes,
       correctChars: countCorrectChars(state.typed, state.targetText),
       correctKeystrokes: state.correctKeystrokes,
       rawErrors: state.rawErrors,
       finalErrors: state.finalErrors
     });
+    state.finalStats = final;
     const consistency = computeConsistency(state.rollingWpm);
 
     await appendHistory({
@@ -302,6 +315,7 @@ export async function run(args) {
   }, 50);
 
   rollingTicker = setInterval(() => {
+    if (state.finished) return;
     const elapsedMs = Date.now() - state.startedAt;
     const s = computeStats({
       elapsedMs,

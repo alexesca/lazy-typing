@@ -2,32 +2,57 @@ function color(code, text) {
   return `\x1b[${code}m${text}\x1b[0m`;
 }
 
-function renderTarget(target, typed, cursorIndex) {
-  let out = '';
+function styledChar(expected, actual, atCursor) {
+  if (actual === undefined) {
+    return atCursor ? color('30;47', expected) : color('90', expected);
+  }
+  if (actual === expected) {
+    return atCursor ? color('30;42', expected) : color('32', expected);
+  }
+  return atCursor ? color('37;41', expected) : color('31', expected);
+}
+
+function renderTargetLines(target, typed, cursorIndex, width, maxLines) {
+  const lines = [''];
+  let col = 0;
+
   for (let i = 0; i < target.length; i += 1) {
     const expected = target[i];
     const actual = typed[i];
     const atCursor = i === cursorIndex;
 
-    if (actual === undefined) {
-      out += atCursor ? color('30;47', expected) : color('90', expected);
-    } else if (actual === expected) {
-      out += atCursor ? color('30;42', expected) : color('32', expected);
-    } else {
-      out += atCursor ? color('37;41', expected) : color('31', expected);
+    if (expected === '\n') {
+      lines.push('');
+      col = 0;
+      continue;
+    }
+
+    lines[lines.length - 1] += styledChar(expected, actual, atCursor);
+    col += 1;
+    if (col >= width) {
+      lines.push('');
+      col = 0;
     }
   }
+
   if (cursorIndex === target.length) {
-    out += color('30;47', ' ');
+    lines[lines.length - 1] += color('30;47', ' ');
   }
-  return out;
+
+  const clipped = lines.slice(0, maxLines);
+  while (clipped.length < maxLines) {
+    clipped.push('');
+  }
+  return clipped;
 }
 
 export function renderFrame(state) {
+  const width = Math.max(20, (state.terminalColumns || 80) - 2);
+  const textLines = Math.max(4, (state.terminalRows || 24) - 9);
   const lines = [];
   lines.push(`${color('36', `Mode: ${state.mode}`)} | Source: ${state.sourceName} | ${state.timerLabel}`);
   lines.push('');
-  lines.push(renderTarget(state.targetText, state.typedText, state.cursorIndex));
+  lines.push(...renderTargetLines(state.targetText, state.typedText, state.cursorIndex, width, textLines));
   lines.push('');
   lines.push(`WPM ${state.netWpm.toFixed(1)} (${state.grossWpm.toFixed(1)} raw) | Acc ${state.accuracy.toFixed(1)}% | Errors ${state.errors} | ${state.progress}`);
 
