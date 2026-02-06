@@ -3,7 +3,7 @@ import process from 'node:process';
 import { run } from './run.js';
 import { parseArgs, printHelp } from './parseArgs.js';
 import { listAvailableSources, listSetsForSource } from '../plugins/loader.js';
-import { historyPath, readHistory } from '../core/history.js';
+import { fallbackHistoryPath, historyPath, readHistory } from '../core/history.js';
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
@@ -40,7 +40,8 @@ async function main() {
 
   if (args.showHistory) {
     const history = await readHistory();
-    console.log(`History file: ${historyPath()}`);
+    console.log(`History DB: ${historyPath()}`);
+    console.log(`Fallback JSON: ${fallbackHistoryPath()}`);
     if (history.length === 0) {
       console.log('No history yet.');
       return;
