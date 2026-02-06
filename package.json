@@ -1,0 +1,19 @@
+{
+  "name": "typing-trainer",
+  "version": "0.1.0",
+  "description": "Terminal typing trainer inspired by Typing.com and Monkeytype",
+  "type": "module",
+  "bin": {
+    "typing-trainer": "./src/cli/index.js"
+  },
+  "scripts": {
+    "start": "node ./src/cli/index.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "typing",
+    "cli",
+    "trainer"
+  ],
+  "license": "MIT"
+}
