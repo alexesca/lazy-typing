@@ -7,11 +7,11 @@ Terminal typing practice with a Typing.com + Monkeytype feel.
 - Minimal terminal UI with live correctness highlighting
 - Modes: `words`, `punctuation`, `dev`
 - Session styles:
-  - Timed test (`--time`, default `60` seconds)
+  - Timed test (`--time`, default `30` seconds)
   - Text completion (finish text before timer)
 - Stats: net WPM, gross WPM, accuracy, errors, elapsed/remaining time, progress
 - Built-in text sources + pluggable source interface
-- Result history in SQLite (`~/.typing-trainer/history.db`) with JSON fallback
+- Result history in JSON by default (`~/.typing-trainer/history.json`)
 
 ## Install / Run
 
@@ -69,6 +69,7 @@ Example:
   "defaultMode": "words",
   "defaultSource": "quotes",
   "defaultSession": "timed",
+  "defaultTimeSeconds": 30,
   "enabledSources": ["quotes", "wordlist", "js-snippets"],
   "seed": 123
 }
@@ -78,8 +79,8 @@ Plugin directory: `~/.typing-trainer/plugins`
 
 History storage:
 
-- Primary: `~/.typing-trainer/history.db` (SQLite)
-- Fallback: `~/.typing-trainer/history.json`
+- Default: `~/.typing-trainer/history.json`
+- Optional SQLite: set `TYPING_TRAINER_USE_SQLITE=1` to use `~/.typing-trainer/history.db`
 
 ## Text Source Plugin Contract
 
@@ -94,7 +95,7 @@ A plugin exports an object with:
 
 `params` includes: `mode`, `setId`, `strict`, `rng`.
 
-Optional config keys: `defaultMode`, `defaultSource`, `defaultSession`, `seed`, `enabledSources`.
+Optional config keys: `defaultMode`, `defaultSource`, `defaultSession`, `defaultTimeSeconds`, `seed`, `enabledSources`.
 
 ## Example Plugin
 

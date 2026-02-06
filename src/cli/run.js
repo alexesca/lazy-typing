@@ -77,7 +77,9 @@ export async function run(args) {
 
   let currentMode = modeForSource(args.mode || config.defaultMode || 'words', source);
   const sessionType = args.session || config.defaultSession || 'timed';
-  const timedSeconds = Number.isFinite(args.time) ? args.time : 60;
+  const timedSeconds = Number.isFinite(args.time)
+    ? args.time
+    : (Number.isFinite(config.defaultTimeSeconds) ? config.defaultTimeSeconds : 30);
 
   setupTerminal();
   clearScreen();
