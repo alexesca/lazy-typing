@@ -72,5 +72,5 @@ export function renderFrame(state) {
     lines.push(color('35', 'Press Enter/Tab to restart, Ctrl+N next text, or Ctrl+C to quit.'));
   }
 
-  return `\x1b[H\x1b[2J${lines.join('\n')}`;
+  return `\x1b[H${lines.join('\n')}\x1b[J`;
 }

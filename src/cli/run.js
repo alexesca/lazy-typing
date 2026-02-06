@@ -1,5 +1,5 @@
 import process from 'node:process';
-import { setupTerminal, restoreTerminal } from '../core/terminal.js';
+import { clearScreen, setupTerminal, restoreTerminal } from '../core/terminal.js';
 import { renderFrame } from '../core/renderer.js';
 import { computeStats, computeConsistency } from '../core/stats.js';
 import { makeRng } from '../core/random.js';
@@ -79,19 +79,17 @@ export async function run(args) {
   const timedSeconds = Number.isFinite(args.time) ? args.time : 60;
 
   setupTerminal();
+  clearScreen();
 
   let ticker;
   let rollingTicker;
 
   const startNewSession = async () => {
-    const cols = process.stdout.columns || 80;
-    const rows = process.stdout.rows || 24;
-    const targetChars = Math.max(420, Math.min(1800, Math.floor((cols - 2) * Math.max(rows - 8, 6))));
     const pulled = await source.getText({
       mode: currentMode,
       setId: args.set,
       strict: Boolean(args.strict),
-      targetChars,
+      targetWords: 300,
       sentenceCount: 5,
       rng
     });
@@ -312,7 +310,7 @@ export async function run(args) {
       cleanup();
       throw err;
     });
-  }, 50);
+  }, 100);
 
   rollingTicker = setInterval(() => {
     if (state.finished) return;
