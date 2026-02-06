@@ -8,7 +8,6 @@ import { readConfig } from '../core/config.js';
 import { resolveSource, listAvailableSources } from '../plugins/loader.js';
 
 const MODES = ['words', 'punctuation', 'dev'];
-const IDLE_CANCEL_MS = 20000;
 
 function modeForSource(preferredMode, source) {
   if (source.supportedModes.includes(preferredMode)) return preferredMode;
@@ -52,7 +51,6 @@ function buildRuntimeSnapshot(state, timerLabel) {
     paused: state.paused,
     helpVisible: state.helpVisible,
     finished: state.finished,
-    cancelled: state.cancelled,
     terminalColumns: process.stdout.columns || 80,
     terminalRows: process.stdout.rows || 24
   };
@@ -109,11 +107,9 @@ export async function run(args) {
     state.paused = false;
     state.helpVisible = false;
     state.finished = false;
-    state.cancelled = false;
     state.rollingWpm = [];
     state.finishedAt = undefined;
     state.finalStats = undefined;
-    state.lastInputAt = Date.now();
   };
 
   const state = {
@@ -130,11 +126,9 @@ export async function run(args) {
     paused: false,
     helpVisible: false,
     finished: false,
-    cancelled: false,
     rollingWpm: [],
     finishedAt: undefined,
-    finalStats: undefined,
-    lastInputAt: Date.now()
+    finalStats: undefined
   };
 
   const paint = () => {
@@ -173,22 +167,6 @@ export async function run(args) {
       finalErrors: final.finalErrors,
       elapsedMs: final.elapsedMs,
       consistency
-    });
-    paint();
-  };
-
-  const cancelSessionForIdle = () => {
-    if (state.finished || state.cancelled) return;
-    state.finished = true;
-    state.cancelled = true;
-    state.finishedAt = Date.now();
-    state.finalStats = computeStats({
-      elapsedMs: state.finishedAt - state.startedAt,
-      totalKeystrokes: state.totalKeystrokes,
-      correctChars: countCorrectChars(state.typed, state.targetText),
-      correctKeystrokes: state.correctKeystrokes,
-      rawErrors: state.rawErrors,
-      finalErrors: state.finalErrors
     });
     paint();
   };
@@ -261,7 +239,6 @@ export async function run(args) {
     }
 
     if (key.name === 'backspace') {
-      state.lastInputAt = Date.now();
       if (state.cursor > 0) {
         state.cursor -= 1;
         state.typed.splice(state.cursor, 1);
@@ -275,7 +252,6 @@ export async function run(args) {
     }
 
     if (typeof str === 'string' && str.length > 0) {
-      state.lastInputAt = Date.now();
       const ch = str[0];
       const expected = state.targetText[state.cursor];
       state.totalKeystrokes += 1;
@@ -300,10 +276,6 @@ export async function run(args) {
       paint();
       return;
     }
-    if ((Date.now() - state.lastInputAt) >= IDLE_CANCEL_MS) {
-      cancelSessionForIdle();
-      return;
-    }
 
     if (sessionType === 'timed') {
       const elapsedSeconds = Math.floor((Date.now() - state.startedAt) / 1000);
@@ -322,11 +294,16 @@ export async function run(args) {
       throw err;
     });
   };
+  const resizeHandler = () => {
+    clearScreen();
+    paint();
+  };
 
   const cleanup = () => {
     clearInterval(ticker);
     clearInterval(rollingTicker);
     process.stdin.off('keypress', keypressHandler);
+    process.off('SIGWINCH', resizeHandler);
     restoreTerminal();
   };
 
@@ -358,4 +335,5 @@ export async function run(args) {
   }, 1000);
 
   process.stdin.on('keypress', keypressHandler);
+  process.on('SIGWINCH', resizeHandler);
 }

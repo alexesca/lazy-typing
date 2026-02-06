@@ -61,11 +61,10 @@ function renderTargetLines(target, typed, cursorIndex, width, maxLines) {
 }
 
 export function renderFrame(state) {
-  const width = Math.max(20, (state.terminalColumns || 80) - 2);
+  const width = Math.max(1, (state.terminalColumns || 80) - 2);
   const extraFooterLines = (state.helpVisible ? 2 : 0)
     + (state.paused ? 2 : 0)
-    + (state.finished ? 2 : 0)
-    + (state.cancelled ? 2 : 0);
+    + (state.finished ? 2 : 0);
   const reservedLines = 5 + extraFooterLines;
   const textLines = Math.max(1, (state.terminalRows || 24) - reservedLines);
   const header = truncateText(`Mode: ${state.mode} | Source: ${state.sourceName} | ${state.timerLabel}`, width);
@@ -90,11 +89,6 @@ export function renderFrame(state) {
     lines.push('');
     lines.push(color('35', truncateText(`Finished: net ${state.netWpm.toFixed(1)} | acc ${state.accuracy.toFixed(1)}% | errors ${state.errors}`, width)));
     lines.push(color('35', truncateText('Press Enter/Tab to restart, Ctrl+N next text, or Ctrl+C to quit.', width)));
-  }
-  if (state.cancelled) {
-    lines.push('');
-    lines.push(color('35', truncateText('Cancelled: no typing for 20 seconds.', width)));
-    lines.push(color('35', truncateText('Press Enter/Tab to restart, or Ctrl+C to quit.', width)));
   }
 
   return `\x1b[H${lines.join('\n')}\x1b[J`;
