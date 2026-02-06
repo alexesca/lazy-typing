@@ -11,7 +11,7 @@ Terminal typing practice with a Typing.com + Monkeytype feel.
   - Text completion (finish text before timer)
 - Stats: net WPM, gross WPM, accuracy, errors, elapsed/remaining time, progress
 - Built-in text sources + pluggable source interface
-- Result history in `~/.typing-trainer/history.json`
+- Result history in SQLite (`~/.typing-trainer/history.db`) with JSON fallback
 
 ## Install / Run
 
@@ -75,6 +75,11 @@ Example:
 ```
 
 Plugin directory: `~/.typing-trainer/plugins`
+
+History storage:
+
+- Primary: `~/.typing-trainer/history.db` (SQLite)
+- Fallback: `~/.typing-trainer/history.json`
 
 ## Text Source Plugin Contract
 
