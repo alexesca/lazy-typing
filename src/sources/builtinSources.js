@@ -6,6 +6,10 @@ function wordCount(text) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
+function capWords(text, maxWords) {
+  return text.trim().split(/\s+/).filter(Boolean).slice(0, maxWords).join(' ');
+}
+
 function makeParagraph(pool, rng, sentenceCount = 5, targetWords = 300) {
   let text = '';
   while (wordCount(text) < targetWords) {
@@ -15,7 +19,7 @@ function makeParagraph(pool, rng, sentenceCount = 5, targetWords = 300) {
     }
     text = `${text} ${sentences.join(' ')}`.trim();
   }
-  return text;
+  return capWords(text, targetWords);
 }
 
 const QUOTE_SOURCE = {
