@@ -104,13 +104,14 @@ export async function run(args) {
     state.finalErrors = 0;
     state.totalKeystrokes = 0;
     state.correctKeystrokes = 0;
+    state.rollingWpm = [];
     state.startedAt = Date.now();
     state.paused = false;
     state.helpVisible = false;
     state.finished = false;
-    state.rollingWpm = [];
     state.finishedAt = undefined;
     state.finalStats = undefined;
+    clearScreen();
   };
 
   const state = {
@@ -169,6 +170,7 @@ export async function run(args) {
       elapsedMs: final.elapsedMs,
       consistency
     });
+    clearScreen();
     paint();
   };
 
