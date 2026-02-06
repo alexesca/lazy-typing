@@ -1,5 +1,5 @@
 import process from 'node:process';
-import { setupTerminal, restoreTerminal } from '../core/terminal.js';
+import { clearScreen, setupTerminal, restoreTerminal } from '../core/terminal.js';
 import { renderFrame } from '../core/renderer.js';
 import { computeStats, computeConsistency } from '../core/stats.js';
 import { makeRng } from '../core/random.js';
@@ -27,9 +27,8 @@ function countCorrectChars(typed, target) {
 }
 
 function buildRuntimeSnapshot(state, timerLabel) {
-  const elapsedMs = Date.now() - state.startedAt;
-  const live = computeStats({
-    elapsedMs,
+  const live = state.finalStats || computeStats({
+    elapsedMs: Date.now() - state.startedAt,
     totalKeystrokes: state.totalKeystrokes,
     correctChars: countCorrectChars(state.typed, state.targetText),
     correctKeystrokes: state.correctKeystrokes,
@@ -48,10 +47,13 @@ function buildRuntimeSnapshot(state, timerLabel) {
     grossWpm: live.grossWpm,
     accuracy: live.accuracy,
     errors: state.rawErrors,
+    finalErrors: state.finalErrors,
     progress: progressLabel(state.cursor, state.targetText.length),
     paused: state.paused,
     helpVisible: state.helpVisible,
-    finished: state.finished
+    finished: state.finished,
+    terminalColumns: process.stdout.columns || 80,
+    terminalRows: process.stdout.rows || 24
   };
 }
 
@@ -75,9 +77,12 @@ export async function run(args) {
 
   let currentMode = modeForSource(args.mode || config.defaultMode || 'words', source);
   const sessionType = args.session || config.defaultSession || 'timed';
-  const timedSeconds = Number.isFinite(args.time) ? args.time : 60;
+  const timedSeconds = Number.isFinite(args.time)
+    ? args.time
+    : (Number.isFinite(config.defaultTimeSeconds) ? config.defaultTimeSeconds : 30);
 
   setupTerminal();
+  clearScreen();
 
   let ticker;
   let rollingTicker;
@@ -87,6 +92,8 @@ export async function run(args) {
       mode: currentMode,
       setId: args.set,
       strict: Boolean(args.strict),
+      targetWords: 300,
+      sentenceCount: 5,
       rng
     });
 
@@ -99,11 +106,14 @@ export async function run(args) {
     state.finalErrors = 0;
     state.totalKeystrokes = 0;
     state.correctKeystrokes = 0;
+    state.rollingWpm = [];
     state.startedAt = Date.now();
     state.paused = false;
     state.helpVisible = false;
     state.finished = false;
-    state.rollingWpm = [];
+    state.finishedAt = undefined;
+    state.finalStats = undefined;
+    clearScreen();
   };
 
   const state = {
@@ -120,11 +130,14 @@ export async function run(args) {
     paused: false,
     helpVisible: false,
     finished: false,
-    rollingWpm: []
+    rollingWpm: [],
+    finishedAt: undefined,
+    finalStats: undefined
   };
 
   const paint = () => {
-    const elapsed = Math.floor((Date.now() - state.startedAt) / 1000);
+    const now = state.finishedAt || Date.now();
+    const elapsed = Math.floor((now - state.startedAt) / 1000);
     const timerLabel = sessionType === 'timed'
       ? `Time ${Math.max(0, timedSeconds - elapsed)}s`
       : `Elapsed ${elapsed}s`;
@@ -134,15 +147,17 @@ export async function run(args) {
   const finishSession = async () => {
     if (state.finished) return;
     state.finished = true;
+    state.finishedAt = Date.now();
     state.finalErrors = state.typed.reduce((acc, char, i) => (char === state.targetText[i] ? acc : acc + 1), 0);
     const final = computeStats({
-      elapsedMs: Date.now() - state.startedAt,
+      elapsedMs: state.finishedAt - state.startedAt,
       totalKeystrokes: state.totalKeystrokes,
       correctChars: countCorrectChars(state.typed, state.targetText),
       correctKeystrokes: state.correctKeystrokes,
       rawErrors: state.rawErrors,
       finalErrors: state.finalErrors
     });
+    state.finalStats = final;
     const consistency = computeConsistency(state.rollingWpm);
 
     await appendHistory({
@@ -157,6 +172,7 @@ export async function run(args) {
       elapsedMs: final.elapsedMs,
       consistency
     });
+    clearScreen();
     paint();
   };
 
@@ -261,7 +277,10 @@ export async function run(args) {
   };
 
   const tick = async () => {
-    if (state.paused || state.finished) {
+    if (state.finished) {
+      return;
+    }
+    if (state.paused) {
       paint();
       return;
     }
@@ -283,11 +302,16 @@ export async function run(args) {
       throw err;
     });
   };
+  const resizeHandler = () => {
+    clearScreen();
+    paint();
+  };
 
   const cleanup = () => {
     clearInterval(ticker);
     clearInterval(rollingTicker);
     process.stdin.off('keypress', keypressHandler);
+    process.off('SIGWINCH', resizeHandler);
     restoreTerminal();
   };
 
@@ -299,9 +323,10 @@ export async function run(args) {
       cleanup();
       throw err;
     });
-  }, 50);
+  }, 100);
 
   rollingTicker = setInterval(() => {
+    if (state.finished) return;
     const elapsedMs = Date.now() - state.startedAt;
     const s = computeStats({
       elapsedMs,
@@ -318,4 +343,5 @@ export async function run(args) {
   }, 1000);
 
   process.stdin.on('keypress', keypressHandler);
+  process.on('SIGWINCH', resizeHandler);
 }

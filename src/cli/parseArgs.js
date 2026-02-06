@@ -1,6 +1,6 @@
 const DEFAULTS = {
   mode: 'words',
-  time: 60,
+  time: 30,
   source: 'quotes',
   strict: false,
   session: 'timed'
@@ -9,7 +9,7 @@ const DEFAULTS = {
 export function parseArgs(argv) {
   const out = {
     mode: DEFAULTS.mode,
-    time: DEFAULTS.time,
+    time: undefined,
     source: DEFAULTS.source,
     set: undefined,
     strict: DEFAULTS.strict,
@@ -52,8 +52,8 @@ export function parseArgs(argv) {
     out.mode = DEFAULTS.mode;
   }
 
-  if (!Number.isFinite(out.time) || out.time <= 0) {
-    out.time = DEFAULTS.time;
+  if (out.time !== undefined && (!Number.isFinite(out.time) || out.time <= 0)) {
+    out.time = undefined;
   }
   if (!['timed', 'completion'].includes(out.session)) {
     out.session = DEFAULTS.session;
@@ -63,5 +63,5 @@ export function parseArgs(argv) {
 }
 
 export function printHelp() {
-  console.log(`typing-trainer\n\nUsage:\n  typing-trainer [flags]\n\nFlags:\n  --mode words|punctuation|dev\n  --time <seconds>\n  --source <sourceId>\n  --set <setId>\n  --list-sources\n  --list-sets <sourceId>\n  --history\n  --strict\n  --session timed|completion\n  --seed <number>\n  --help\n\nControls:\n  Esc pause menu\n  Tab quick restart\n  Ctrl+R restart\n  Ctrl+N next text\n  F1 or ? help\n  Ctrl+C quit\n`);
+  console.log(`typing-trainer\n\nUsage:\n  typing-trainer [flags]\n\nFlags:\n  --mode words|punctuation|dev\n  --time <seconds> (default: config.defaultTimeSeconds or 30)\n  --source <sourceId>\n  --set <setId>\n  --list-sources\n  --list-sets <sourceId>\n  --history\n  --strict\n  --session timed|completion\n  --seed <number>\n  --help\n\nControls:\n  Esc pause menu\n  Tab quick restart\n  Ctrl+R restart\n  Ctrl+N next text\n  F1 or ? help\n  Ctrl+C quit\n`);
 }

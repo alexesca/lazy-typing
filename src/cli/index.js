@@ -40,8 +40,8 @@ async function main() {
 
   if (args.showHistory) {
     const history = await readHistory();
-    console.log(`History DB: ${historyPath()}`);
-    console.log(`Fallback JSON: ${fallbackHistoryPath()}`);
+    console.log(`SQLite DB (optional): ${historyPath()}`);
+    console.log(`History JSON (default): ${fallbackHistoryPath()}`);
     if (history.length === 0) {
       console.log('No history yet.');
       return;

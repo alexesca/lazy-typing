@@ -2,6 +2,26 @@ import { normalizeTextForMode } from '../core/normalize.js';
 import { pickOne } from '../core/random.js';
 import { QUOTES, TECHNICAL, WORD_LIST, JS_SNIPPETS } from './textData.js';
 
+function wordCount(text) {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function capWords(text, maxWords) {
+  return text.trim().split(/\s+/).filter(Boolean).slice(0, maxWords).join(' ');
+}
+
+function makeParagraph(pool, rng, sentenceCount = 5, targetWords = 300) {
+  let text = '';
+  while (wordCount(text) < targetWords) {
+    const sentences = [];
+    for (let i = 0; i < sentenceCount; i += 1) {
+      sentences.push(pickOne(pool, rng));
+    }
+    text = `${text} ${sentences.join(' ')}`.trim();
+  }
+  return capWords(text, targetWords);
+}
+
 const QUOTE_SOURCE = {
   id: 'quotes',
   name: 'Built-in Quotes',
@@ -16,7 +36,7 @@ const QUOTE_SOURCE = {
     const rng = params.rng;
     const set = params.setId || 'general';
     const pool = set === 'technical' ? TECHNICAL : QUOTES;
-    const raw = pickOne(pool, rng);
+    const raw = makeParagraph(pool, rng, params.sentenceCount || 5, params.targetWords || 300);
     return {
       text: normalizeTextForMode(raw, params.mode, { allowNumbers: false }),
       meta: { set }
@@ -30,7 +50,8 @@ const WORD_SOURCE = {
   supportedModes: ['words'],
   async getText(params) {
     const words = [];
-    for (let i = 0; i < 35; i += 1) {
+    const targetWords = params.targetWords || 300;
+    while (words.length < targetWords) {
       words.push(pickOne(WORD_LIST, params.rng));
     }
     return { text: normalizeTextForMode(words.join(' '), 'words') };

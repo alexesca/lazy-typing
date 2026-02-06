@@ -6,6 +6,7 @@ const DIR = process.env.TYPING_TRAINER_HOME || path.join(os.homedir(), '.typing-
 const HISTORY_DB_FILE = path.join(DIR, 'history.db');
 const HISTORY_JSON_FILE = path.join(DIR, 'history.json');
 const MAX = 100;
+const USE_SQLITE = process.env.TYPING_TRAINER_USE_SQLITE === '1';
 let backendPromise;
 
 export function historyPath() {
@@ -52,6 +53,9 @@ async function getBackend() {
       const ready = await ensureAppDir();
       if (!ready) {
         return { type: 'none' };
+      }
+      if (!USE_SQLITE) {
+        return { type: 'json' };
       }
       try {
         return await initSqliteBackend();
