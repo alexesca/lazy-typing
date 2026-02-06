@@ -9,6 +9,11 @@ function truncateText(text, width) {
   return `${text.slice(0, width - 3)}...`;
 }
 
+function padRight(text, width) {
+  if (text.length >= width) return text.slice(0, width);
+  return `${text}${' '.repeat(width - text.length)}`;
+}
+
 function styledChar(expected, actual, atCursor) {
   if (actual === undefined) {
     return atCursor ? color('30;47', expected) : color('90', expected);
@@ -63,16 +68,34 @@ function renderTargetLines(target, typed, cursorIndex, width, maxLines) {
 export function renderFrame(state) {
   const width = Math.max(1, (state.terminalColumns || 80) - 2);
   if (state.finished) {
+    const cols = state.terminalColumns || 80;
+    const rows = state.terminalRows || 24;
+    const boxWidth = Math.max(40, Math.min(cols - 4, 72));
+    const innerWidth = Math.max(1, boxWidth - 4);
+    const content = [
+      color('36', truncateText('Typing Trainer Results', innerWidth)),
+      '',
+      truncateText(`Mode: ${state.mode} | Source: ${state.sourceName}`, innerWidth),
+      truncateText(`Net WPM: ${state.netWpm.toFixed(1)} | Raw WPM: ${state.grossWpm.toFixed(1)}`, innerWidth),
+      truncateText(`Accuracy: ${state.accuracy.toFixed(1)}% | Raw Errors: ${state.errors} | Final Errors: ${state.finalErrors}`, innerWidth),
+      truncateText(`Progress: ${state.progress} | ${state.timerLabel}`, innerWidth),
+      '',
+      color('35', truncateText('Press Enter/Tab to restart, Ctrl+N next text, or Ctrl+C to quit.', innerWidth))
+    ];
+    const boxHeight = content.length + 2;
+    const leftPad = Math.max(0, Math.floor((cols - boxWidth) / 2));
+    const topPad = Math.max(0, Math.floor((rows - boxHeight) / 2));
+    const pad = ' '.repeat(leftPad);
     const lines = [];
-    lines.push(color('36', truncateText('Typing Trainer Results', width)));
-    lines.push('');
-    lines.push(truncateText(`Mode: ${state.mode} | Source: ${state.sourceName}`, width));
-    lines.push(truncateText(`Net WPM: ${state.netWpm.toFixed(1)} | Raw WPM: ${state.grossWpm.toFixed(1)}`, width));
-    lines.push(truncateText(`Accuracy: ${state.accuracy.toFixed(1)}% | Raw Errors: ${state.errors} | Final Errors: ${state.finalErrors}`, width));
-    lines.push(truncateText(`Progress: ${state.progress} | ${state.timerLabel}`, width));
-    lines.push('');
-    lines.push(color('35', truncateText('Press Enter/Tab to restart, Ctrl+N next text, or Ctrl+C to quit.', width)));
-    return `\x1b[H${lines.join('\n')}\x1b[J`;
+
+    for (let i = 0; i < topPad; i += 1) lines.push('');
+    lines.push(`${pad}+-${'-'.repeat(innerWidth)}-+`);
+    for (const line of content) {
+      lines.push(`${pad}| ${padRight(line, innerWidth)} |`);
+    }
+    lines.push(`${pad}+-${'-'.repeat(innerWidth)}-+`);
+
+    return `\x1b[2J\x1b[H${lines.join('\n')}\x1b[J`;
   }
 
   const extraFooterLines = (state.helpVisible ? 2 : 0)
