@@ -44,6 +44,7 @@ Other commands:
 
 ```bash
 typing-trainer --list-sources
+typing-trainer --list-sets book-of-mormon
 typing-trainer --list-sets quotes
 typing-trainer --history
 typing-trainer --help
@@ -96,6 +97,10 @@ A plugin exports an object with:
 `params` includes: `mode`, `setId`, `strict`, `rng`.
 
 Optional config keys: `defaultMode`, `defaultSource`, `defaultSession`, `defaultTimeSeconds`, `seed`, `enabledSources`.
+
+Built-in source: `book-of-mormon`
+- Data file path: `assets/data/book-of-mormon.json`
+- Sets: `all` and one per book title
 
 ## Example Plugin
 
