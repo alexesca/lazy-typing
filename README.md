@@ -15,6 +15,15 @@ Terminal typing practice with a Typing.com + Monkeytype feel.
 
 ## Install / Run
 
+Install globally from npm:
+
+```bash
+npm install -g @lazyclis/typing-trainer
+typing-trainer
+```
+
+Run locally from source:
+
 ```bash
 npm install
 npm start
