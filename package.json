@@ -1,5 +1,5 @@
 {
-  "name": "typing-trainer",
+  "name": "@lazyclis/typing-trainer",
   "version": "0.1.0",
   "description": "Terminal typing trainer inspired by Typing.com and Monkeytype",
   "type": "module",
