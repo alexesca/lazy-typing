@@ -1,6 +1,7 @@
 import { normalizeTextForMode } from '../core/normalize.js';
 import { pickOne } from '../core/random.js';
 import { QUOTES, TECHNICAL, WORD_LIST, JS_SNIPPETS } from './textData.js';
+import bookOfMormonSource from './bookOfMormonSource.js';
 
 const QUOTE_SOURCE = {
   id: 'quotes',
@@ -48,4 +49,4 @@ const JS_SOURCE = {
   }
 };
 
-export default [QUOTE_SOURCE, WORD_SOURCE, JS_SOURCE];
+export default [QUOTE_SOURCE, WORD_SOURCE, JS_SOURCE, bookOfMormonSource];
