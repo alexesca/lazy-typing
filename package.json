@@ -13,7 +13,29 @@
   "keywords": [
     "typing",
     "cli",
-    "trainer"
+    "trainer",
+    "terminal",
+    "wpm",
+    "monkeytype",
+    "practice"
   ],
-  "license": "MIT"
+  "author": "Miguel Escamilla",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexesca/lazy-typing.git"
+  },
+  "homepage": "https://github.com/alexesca/lazy-typing#readme",
+  "bugs": {
+    "url": "https://github.com/alexesca/lazy-typing/issues"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "files": [
+    "src/",
+    "assets/",
+    "LICENSE",
+    "README.md"
+  ]
 }
