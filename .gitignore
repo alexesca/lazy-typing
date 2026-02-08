@@ -10,3 +10,6 @@ dist/
 build/
 coverage/
 *.tgz
+.next/
+apps/dashboard/.next/
+apps/dashboard/.vercel/

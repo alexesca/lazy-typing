@@ -1,0 +1,14 @@
+{
+  "name": "dashboard",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/dashboard",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "command": "npm run dev --workspace=@lazy-typing/dashboard"
+    },
+    "build": {
+      "command": "npm run build --workspace=@lazy-typing/dashboard"
+    }
+  }
+}

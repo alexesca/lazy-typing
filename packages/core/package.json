@@ -1,0 +1,12 @@
+{
+  "name": "@lazy-typing/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./normalize": "./src/normalize.js",
+    "./random": "./src/random.js",
+    "./session": "./src/session.js",
+    "./stats": "./src/stats.js"
+  }
+}

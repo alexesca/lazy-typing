@@ -3,13 +3,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const HISTORY_MODULE_PATH = fileURLToPath(new URL('../src/core/history.js', import.meta.url));
 
 test('history persists and reads records using configured home path', async () => {
   const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'typing-trainer-history-'));
   process.env.TYPING_TRAINER_HOME = tmpRoot;
 
-  const historyUrl = `${pathToFileURL(path.resolve('src/core/history.js')).href}?t=${Date.now()}`;
+  const historyUrl = `${pathToFileURL(path.resolve(HISTORY_MODULE_PATH)).href}?t=${Date.now()}`;
   const history = await import(historyUrl);
 
   await history.appendHistory({
@@ -29,6 +31,8 @@ test('history persists and reads records using configured home path', async () =
   assert.equal(items.length, 1);
   assert.equal(items[0].mode, 'words');
   assert.equal(items[0].sourceId, 'quotes');
+  assert.equal(typeof items[0].sessionId, 'string');
+  assert.equal(items[0].syncState, 'pending');
 
   await fs.rm(tmpRoot, { recursive: true, force: true });
   delete process.env.TYPING_TRAINER_HOME;

@@ -1,0 +1,41 @@
+{
+  "name": "@lazyclis/typing-trainer",
+  "version": "0.1.0",
+  "description": "Terminal typing trainer inspired by Typing.com and Monkeytype",
+  "type": "module",
+  "bin": {
+    "typing-trainer": "./src/cli/index.js"
+  },
+  "scripts": {
+    "start": "node ./src/cli/index.js",
+    "test": "node --test ./tests/*.test.js"
+  },
+  "keywords": [
+    "typing",
+    "cli",
+    "trainer",
+    "terminal",
+    "wpm",
+    "monkeytype",
+    "practice"
+  ],
+  "author": "Miguel Escamilla",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexesca/lazy-typing.git"
+  },
+  "homepage": "https://github.com/alexesca/lazy-typing#readme",
+  "bugs": {
+    "url": "https://github.com/alexesca/lazy-typing/issues"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "files": [
+    "src/",
+    "assets/",
+    "LICENSE",
+    "README.md"
+  ]
+}

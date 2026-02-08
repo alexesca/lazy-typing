@@ -6,8 +6,11 @@ const DEFAULTS = {
   session: 'timed'
 };
 
+const COMMANDS = new Set(['login', 'logout', 'sync', 'status']);
+
 export function parseArgs(argv) {
   const out = {
+    command: undefined,
     mode: DEFAULTS.mode,
     time: undefined,
     source: DEFAULTS.source,
@@ -18,10 +21,17 @@ export function parseArgs(argv) {
     listSources: false,
     listSetsFor: undefined,
     showHistory: false,
-    help: false
+    help: false,
+    baseUrl: undefined
   };
 
-  for (let i = 0; i < argv.length; i += 1) {
+  let i = 0;
+  if (argv[0] && !argv[0].startsWith('-') && COMMANDS.has(argv[0])) {
+    out.command = argv[0];
+    i = 1;
+  }
+
+  for (; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--mode') {
       out.mode = argv[++i] || out.mode;
@@ -43,6 +53,8 @@ export function parseArgs(argv) {
       out.listSetsFor = argv[++i];
     } else if (arg === '--history') {
       out.showHistory = true;
+    } else if (arg === '--base-url') {
+      out.baseUrl = argv[++i];
     } else if (arg === '--help' || arg === '-h' || arg === '?') {
       out.help = true;
     }
@@ -63,5 +75,5 @@ export function parseArgs(argv) {
 }
 
 export function printHelp() {
-  console.log(`typing-trainer\n\nUsage:\n  typing-trainer [flags]\n\nFlags:\n  --mode words|punctuation|dev\n  --time <seconds> (default: config.defaultTimeSeconds or 30)\n  --source <sourceId>\n  --set <setId>\n  --list-sources\n  --list-sets <sourceId>\n  --history\n  --strict\n  --session timed|completion\n  --seed <number>\n  --help\n\nControls:\n  Esc pause menu\n  Tab quick restart\n  Ctrl+R restart\n  Ctrl+N next text\n  F1 or ? help\n  Ctrl+C quit\n`);
+  console.log(`typing-trainer\n\nUsage:\n  typing-trainer [flags]\n  typing-trainer <login|logout|sync|status> [--base-url <url>]\n\nFlags:\n  --mode words|punctuation|dev\n  --time <seconds> (default: config.defaultTimeSeconds or 30)\n  --source <sourceId>\n  --set <setId>\n  --list-sources\n  --list-sets <sourceId>\n  --history\n  --strict\n  --session timed|completion\n  --seed <number>\n  --base-url <https://dashboard.example.com>\n  --help\n\nControls:\n  Esc pause menu\n  Tab quick restart\n  Ctrl+R restart\n  Ctrl+N next text\n  F1 or ? help\n  Ctrl+C quit\n`);
 }
