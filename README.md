@@ -1,136 +1,40 @@
-# Typing Trainer (CLI)
+# Lazy Typing Monorepo
 
-Terminal typing practice with a Typing.com + Monkeytype feel.
+Monorepo for an offline-first typing trainer ecosystem:
 
-## Features
+- `apps/cli`: npm-published terminal app (`typing-trainer`)
+- `apps/dashboard`: Next.js dashboard with Auth.js, history, logs, graphs, and streaks
+- `packages/core`: shared typing-domain logic
 
-- Minimal terminal UI with live correctness highlighting
-- Modes: `words`, `punctuation`, `dev`
-- Session styles:
-  - Timed test (`--time`, default `30` seconds)
-  - Text completion (finish text before timer)
-- Stats: net WPM, gross WPM, accuracy, errors, elapsed/remaining time, progress
-- Built-in text sources + pluggable source interface
-- Result history in JSON by default (`~/.typing-trainer/history.json`)
-
-## Install / Run
-
-Install globally from npm:
+## Workspace Commands
 
 ```bash
-npm install -g @lazyclis/typing-trainer
-typing-trainer
+npm run start
+npm run test
+npm run dev:dashboard
 ```
 
-Run locally from source:
+## CLI Overview
+
+The CLI is offline by default and always stores local history first. If logged in, it can sync pending sessions to the dashboard.
 
 ```bash
-npm install
-npm start
+typing-trainer login --base-url http://localhost:3000
+typing-trainer status
+typing-trainer sync
+typing-trainer logout
 ```
 
-Or run as a CLI bin:
+## Dashboard Overview
 
-```bash
-npm link
-typing-trainer
-```
+The dashboard provides:
 
-## Usage
+- Auth.js login
+- Session history and logs
+- Progress graphs (daily sessions and net WPM)
+- Daily streak tracking by user timezone
 
-```bash
-typing-trainer \
-  --mode words|punctuation|dev \
-  --time 15|30|60|120|<seconds> \
-  --source <sourceId> \
-  --set <setId> \
-  --strict \
-  --session timed|completion \
-  --seed <number>
-```
+## Notes
 
-Other commands:
-
-```bash
-typing-trainer --list-sources
-typing-trainer --list-sets book-of-mormon
-typing-trainer --list-sets quotes
-typing-trainer --history
-typing-trainer --help
-```
-
-## Controls
-
-- `Esc`: pause menu (resume/restart/cycle mode/quit)
-- `Tab`: quick restart
-- `Ctrl+R`: restart
-- `Ctrl+N`: next text
-- `F1` or `?`: help overlay
-- `Ctrl+C`: quit
-
-## Config
-
-Config file: `~/.typing-trainer/config.json`
-
-Example:
-
-```json
-{
-  "defaultMode": "words",
-  "defaultSource": "quotes",
-  "defaultSession": "timed",
-  "defaultTimeSeconds": 30,
-  "enabledSources": ["quotes", "wordlist", "js-snippets"],
-  "seed": 123
-}
-```
-
-Plugin directory: `~/.typing-trainer/plugins`
-
-History storage:
-
-- Default: `~/.typing-trainer/history.json`
-- Optional SQLite: set `TYPING_TRAINER_USE_SQLITE=1` to use `~/.typing-trainer/history.db`
-
-## Text Source Plugin Contract
-
-A plugin exports an object with:
-
-- `id: string`
-- `name: string`
-- `supportedModes: ("words"|"punctuation"|"dev")[]`
-- `listSets?: () => Promise<Array<{id: string, name: string}>>`
-- `getText: (params) => Promise<{text: string, meta?: any}>`
-- `warmup?: () => Promise<void>`
-
-`params` includes: `mode`, `setId`, `strict`, `rng`.
-
-Optional config keys: `defaultMode`, `defaultSource`, `defaultSession`, `defaultTimeSeconds`, `seed`, `enabledSources`.
-
-Built-in source: `book-of-mormon`
-- Data file path: `assets/data/book-of-mormon.json`
-- Sets: `all` and one per book title
-
-## Example Plugin
-
-See: `src/plugins/example-local-txt-plugin.js`
-
-To use it as a user plugin:
-
-1. Copy it to `~/.typing-trainer/plugins/local-txt.mjs`
-2. Add `.txt` files under `assets/texts` (or set `TYPING_TRAINER_TEXT_DIR`)
-3. Run `typing-trainer --source local-txt`
-
-## Project Structure
-
-- `src/core`: session/stats/normalization/rendering/history/config
-- `src/sources`: built-in text source library
-- `src/plugins`: plugin loading + example plugin
-- `src/cli`: CLI parsing and interactive runtime
-- `tests`: unit tests for stats, normalization, and loader
-
-## Testing
-
-```bash
-npm test
-```
+- Run Prisma migrations for `apps/dashboard/prisma/schema.prisma` before using dashboard APIs.
+- Current credential auth is intentionally simple for local development and should be hardened before production.

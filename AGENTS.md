@@ -1,56 +1,68 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-This repository is currently empty aside from `.git`. As code is added, keep a predictable layout:
+This repository is an Nx-style monorepo with npm workspaces:
 
-- `src/` for application/library code.
-- `tests/` for automated tests.
+- `apps/cli/` for the npm-published `typing-trainer` CLI app.
+- `apps/dashboard/` for the Next.js dashboard (Auth.js, history, logs, graphs).
+- `packages/core/` for shared typing-domain logic.
 - `scripts/` for helper tooling.
-- `assets/` for static files (images, fixtures, data).
 
-If you choose a different structure, update this document with the actual paths.
+CLI internals:
+
+- `apps/cli/src/cli/` command parsing and interactive runtime.
+- `apps/cli/src/core/` terminal UI, history, sync/auth/config.
+- `apps/cli/src/sources/` built-in text sources.
+- `apps/cli/src/plugins/` plugin loader and plugin examples.
+- `apps/cli/tests/` Node test runner unit tests.
+
+Dashboard internals:
+
+- `apps/dashboard/app/` Next.js app router pages and API routes.
+- `apps/dashboard/lib/` auth/db/sync utility modules.
+- `apps/dashboard/prisma/` Prisma schema.
 
 ## Build, Test, and Development Commands
-No build, test, or runtime tooling is configured yet. When you add them, document the exact commands here, for example:
+Use these commands from repo root:
 
-- `npm run dev` — start the local dev server.
-- `npm test` — run the unit test suite.
-- `make build` — produce a production build.
+- `npm run start` — run the CLI app.
+- `npm run test` — run CLI tests.
+- `npm run dev:dashboard` — start the Next.js dashboard in dev mode.
+- `npm run nx -- <target>` — run Nx targets manually.
 
-Keep the list short and scoped to the commands contributors must run.
+Package-specific commands:
+
+- `npm run start --workspace=@lazyclis/typing-trainer`
+- `npm run test --workspace=@lazyclis/typing-trainer`
+- `npm run dev --workspace=@lazy-typing/dashboard`
 
 ## Coding Style & Naming Conventions
-No formatting or linting tools are defined. Until a tool is adopted, follow these defaults:
+No formatter/linter is enforced yet. Follow:
 
 - Indentation: 2 spaces for JS/TS/JSON, 4 spaces for Python.
-- File naming: `kebab-case` for directories, `PascalCase` for class files when relevant.
-- Keep functions small and prefer descriptive names over abbreviations.
-
-Once a formatter or linter is added (e.g., Prettier, ESLint, Black, Ruff), note the version and primary config file path.
+- File naming: `kebab-case` for directories, `camelCase` or `kebab-case` for JS files.
+- Keep modules small and use descriptive names.
+- Prefer explicit data contracts for CLI sync payloads and dashboard API routes.
 
 ## Testing Guidelines
-Testing framework not selected yet. When added, include:
+Current framework: Node.js built-in test runner.
 
-- The framework name and version (e.g., Jest, Pytest).
-- Test file naming (e.g., `*.test.ts`, `test_*.py`).
-- How to run tests (single command).
+- Test files: `apps/cli/tests/*.test.js`
+- Run: `npm run test --workspace=@lazyclis/typing-trainer`
 
-Aim for tests that cover core logic and critical edge cases.
+When adding dashboard tests, place them under `apps/dashboard` and document the command here.
 
 ## Commit & Pull Request Guidelines
-This repository has no commit history yet, so no established commit message style exists. Until conventions are set:
+- Use imperative, present-tense commit subjects (example: `Add CLI device-code login flow`).
+- Keep commit subjects under 72 characters when possible.
 
-- Use imperative, present-tense subjects (e.g., "Add CLI entrypoint").
-- Keep messages under 72 characters when possible.
+For pull requests include:
 
-For pull requests, include:
-
-- A short summary of changes.
-- Testing notes (what you ran, or "not run").
-- Screenshots for UI changes, if applicable.
+- Short summary of changes.
+- Testing notes (`what ran` or `not run`).
+- Screenshots for dashboard/UI changes.
 
 ## Security & Configuration Tips
-Avoid committing secrets. If you add configuration files:
-
-- Provide sample templates (e.g., `.env.example`).
-- Document required environment variables and defaults.
+- Never commit secrets.
+- Keep dashboard environment variables in `apps/dashboard/.env` and commit only `apps/dashboard/.env.example`.
+- Required dashboard variables: `DATABASE_URL`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`.

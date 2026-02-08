@@ -6,6 +6,8 @@ import { makeRng } from '../core/random.js';
 import { appendHistory } from '../core/history.js';
 import { readConfig } from '../core/config.js';
 import { resolveSource, listAvailableSources } from '../plugins/loader.js';
+import { getAuthState, hasValidAccessToken } from '../core/auth.js';
+import { syncPendingSessions } from '../core/sync.js';
 
 const MODES = ['words', 'punctuation', 'dev'];
 
@@ -164,14 +166,32 @@ export async function run(args) {
       timestamp: Date.now(),
       mode: state.mode,
       sourceId: state.source.id,
+      setId: args.set,
+      sessionType,
       netWpm: final.netWpm,
       grossWpm: final.grossWpm,
       accuracy: final.accuracy,
       rawErrors: final.rawErrors,
       finalErrors: final.finalErrors,
       elapsedMs: final.elapsedMs,
-      consistency
+      consistency,
+      client: 'cli',
+      metadata: {
+        strict: Boolean(args.strict),
+        version: process.env.npm_package_version || '0.1.0',
+        platform: process.platform
+      }
     });
+
+    const auth = await getAuthState();
+    if (auth.autoSync && hasValidAccessToken(auth) && auth.baseUrl) {
+      try {
+        await syncPendingSessions({ baseUrl: auth.baseUrl, accessToken: auth.accessToken, limit: 50 });
+      } catch {
+        // offline-first: sync failures should not interrupt local practice
+      }
+    }
+
     clearScreen();
     paint();
   };

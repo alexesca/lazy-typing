@@ -81,3 +81,16 @@ test('parses multiple flags together', () => {
   assert.equal(out.strict, true);
   assert.equal(out.source, 'js-snippets');
 });
+
+test('parses command mode for sync/login/status/logout', () => {
+  assert.equal(parseArgs(['login']).command, 'login');
+  assert.equal(parseArgs(['sync']).command, 'sync');
+  assert.equal(parseArgs(['status']).command, 'status');
+  assert.equal(parseArgs(['logout']).command, 'logout');
+});
+
+test('parses --base-url for command mode', () => {
+  const out = parseArgs(['sync', '--base-url', 'http://localhost:3000']);
+  assert.equal(out.command, 'sync');
+  assert.equal(out.baseUrl, 'http://localhost:3000');
+});

@@ -1,0 +1,14 @@
+{
+  "name": "cli",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/cli/src",
+  "projectType": "application",
+  "targets": {
+    "start": {
+      "command": "npm run start --workspace=@lazyclis/typing-trainer"
+    },
+    "test": {
+      "command": "npm run test --workspace=@lazyclis/typing-trainer"
+    }
+  }
+}
