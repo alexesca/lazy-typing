@@ -21,6 +21,7 @@ Dashboard internals:
 - `apps/dashboard/app/` Next.js app router pages and API routes.
 - `apps/dashboard/lib/` auth/db/sync utility modules.
 - `apps/dashboard/prisma/` Prisma schema.
+- `apps/dashboard/k8s/` Kubernetes manifests (Gateway API deployment).
 
 ## Build, Test, and Development Commands
 Use these commands from repo root:
@@ -29,6 +30,7 @@ Use these commands from repo root:
 - `npm run test` — run CLI tests.
 - `npm run dev:dashboard` — start the Next.js dashboard in dev mode.
 - `npm run nx -- <target>` — run Nx targets manually.
+- `kubectl apply -k apps/dashboard/k8s` — apply dashboard Kubernetes manifests.
 
 Package-specific commands:
 

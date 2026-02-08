@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dashboard-config
+  namespace: lazy-typing
+data:
+  NODE_ENV: production
+  PORT: "3000"
+  NEXTAUTH_URL: https://dashboard.example.com
